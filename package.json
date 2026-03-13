@@ -1,0 +1,24 @@
+{
+  "name": "claude-guard",
+  "version": "1.0.0",
+  "description": "Claude Code hook that intercepts and redacts sensitive data (secrets, API keys, PII, system info) before it reaches the LLM",
+  "main": "dist/entrypoint.js",
+  "scripts": {
+    "guard": "node scripts/setup.mjs",
+    "guard:install": "node scripts/setup.mjs install",
+    "guard:uninstall": "node scripts/setup.mjs uninstall",
+    "guard:reload": "node scripts/setup.mjs reload",
+    "build": "tsc",
+    "test": "node scripts/run-tests.mjs",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^8.3.0",
+    "minimatch": "^10.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
