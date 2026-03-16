@@ -530,10 +530,22 @@
     "**/.railway"
   ],
   "protectedEnvPatterns": [
-    "^\\s*env\\s*$",
-    "^\\s*printenv",
-    "^\\s*export\\s*$",
-    "cat\\s+/proc/self/environ"
+    "(?:^|[|;&])\\s*env\\s*(?:$|[|;&>])",
+    "(?:^|[|;&])\\s*printenv",
+    "(?:^|[|;&])\\s*(?:export|set|declare\\s+-[xp])\\s*(?:$|[|;&>])",
+    "cat\\s+/proc/(?:self|\\d+)/environ",
+    "\\/usr\\/bin\\/env\\b",
+    "\\bcompgen\\s+-[ve]",
+    "\\becho\\s+.*\\$\\{?(?:SECRET|PASSWORD|PASSWD|TOKEN|API_KEY|AWS_|PRIVATE_KEY|CREDENTIAL|AUTH|DATABASE_URL|DB_PASS|MONGO|REDIS_URL|STRIPE|SENDGRID|TWILIO|GITHUB_TOKEN|OPENAI|ANTHROPIC)[^}]*\\}?",
+    "\\bprintf\\s+.*\\$\\{?(?:SECRET|PASSWORD|PASSWD|TOKEN|API_KEY|AWS_|PRIVATE_KEY|CREDENTIAL|AUTH|DATABASE_URL)[^}]*\\}?",
+    "\\bsh\\s+-c\\s+['\"]\\s*env",
+    "\\bbash\\s+-c\\s+['\"]\\s*env",
+    "\\bpython[23]?\\s+-c\\s+['\"].*(?:os\\.environ|os\\.getenv)",
+    "\\bnode\\s+-e\\s+['\"].*process\\.env",
+    "\\bruby\\s+-e\\s+['\"].*ENV",
+    "\\bperl\\s+-\\w*e\\s+['\"].*%ENV",
+    "\\bphp\\s+-r\\s+['\"].*(?:getenv|\\$_ENV|\\$_SERVER)",
+    "\\bawk\\s+.*ENVIRON"
   ],
   "dangerousCommands": [],
   "behavior": {

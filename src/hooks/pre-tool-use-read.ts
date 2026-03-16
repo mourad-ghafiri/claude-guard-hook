@@ -1,12 +1,12 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { minimatch } from "minimatch";
 import { HookInput, GuardConfig } from "../config/types.js";
 import { PatternRegistry } from "../patterns/registry.js";
 import { RedactionPipeline } from "../core/scanner.js";
 import { loadStore, saveStore, addEntries } from "../core/session-store.js";
 import { ensureSystemEntries, redactSystemInfo } from "../core/system-info.js";
 import { generateMockContent } from "../core/mock-content.js";
+import { isPathProtected } from "../core/path-protection.js";
 
 /**
  * PreToolUse Read hook: intercept file reads.
@@ -66,12 +66,26 @@ export function handlePreToolUseRead(
     }
   }
 
-  // Try to read the file
+  // Try to read the file — fail closed if we can't scan it
   let fileContent: string;
   try {
     fileContent = fs.readFileSync(resolvedPath, "utf-8");
-  } catch {
-    process.exit(0);
+  } catch (err) {
+    if (config.behavior.logDetections) {
+      process.stderr.write(
+        `[claude-guard] denied: could not pre-scan ${basename} (${err instanceof Error ? err.message : "unknown error"})\n`,
+      );
+    }
+    process.stdout.write(
+      JSON.stringify({
+        hookSpecificOutput: {
+          hookEventName: "PreToolUse",
+          permissionDecision: "deny",
+          permissionDecisionReason: `Blocked by claude-guard: unable to pre-scan "${basename}" for secrets. File read denied for safety.`,
+        },
+      }),
+    );
+    return;
   }
 
   // Skip binary files
@@ -153,43 +167,3 @@ export function handlePreToolUseRead(
   process.stdout.write(JSON.stringify(output));
 }
 
-/**
- * Checks if a file path matches any protected file or folder pattern.
- */
-function isPathProtected(
-  relativePath: string,
-  absolutePath: string,
-  config: GuardConfig,
-): boolean {
-  const basename = path.basename(absolutePath);
-  const matchOpts = { dot: true };
-
-  // Check protected files
-  for (const pattern of config.protectedFiles) {
-    if (
-      minimatch(relativePath, pattern, matchOpts) ||
-      minimatch(basename, pattern, matchOpts) ||
-      minimatch(absolutePath, pattern, matchOpts)
-    ) {
-      return true;
-    }
-  }
-
-  // Check protected folders — block any file inside a protected folder
-  const folders = config.protectedFolders ?? [];
-  for (const pattern of folders) {
-    // Check if the file's directory matches
-    const dirPath = path.dirname(relativePath);
-    const absDirPath = path.dirname(absolutePath);
-    if (
-      minimatch(dirPath, pattern, matchOpts) ||
-      minimatch(absDirPath, pattern, matchOpts) ||
-      minimatch(relativePath, pattern + "/**", matchOpts) ||
-      minimatch(absolutePath, pattern + "/**", matchOpts)
-    ) {
-      return true;
-    }
-  }
-
-  return false;
-}

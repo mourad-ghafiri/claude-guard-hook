@@ -179,9 +179,14 @@ function buildHooks() {
       { matcher: "Read", hooks: [{ type: "command", command: cmd, timeout: 10 }] },
       { matcher: "Write|Edit", hooks: [{ type: "command", command: cmd, timeout: 10 }] },
       { matcher: "Bash", hooks: [{ type: "command", command: cmd, timeout: 10 }] },
+      { matcher: "Grep", hooks: [{ type: "command", command: cmd, timeout: 10 }] },
+      { matcher: "Glob", hooks: [{ type: "command", command: cmd, timeout: 10 }] },
     ],
     PostToolUse: [
-      { matcher: "Read|Write|Edit|Bash", hooks: [{ type: "command", command: cmd, timeout: 10, async: true }] },
+      // Bash/Grep output scanning must be synchronous to inject additionalContext before LLM processes
+      { matcher: "Bash|Grep", hooks: [{ type: "command", command: cmd, timeout: 10 }] },
+      // Other tools can run async for cleanup/logging
+      { matcher: "Read|Write|Edit|Glob", hooks: [{ type: "command", command: cmd, timeout: 10, async: true }] },
     ],
   };
 }

@@ -4,6 +4,8 @@ import { handleUserPromptSubmit } from "./hooks/user-prompt-submit.js";
 import { handlePreToolUseRead } from "./hooks/pre-tool-use-read.js";
 import { handlePreToolUseWrite } from "./hooks/pre-tool-use-write.js";
 import { handlePreToolUseBash } from "./hooks/pre-tool-use-bash.js";
+import { handlePreToolUseGrep } from "./hooks/pre-tool-use-grep.js";
+import { handlePreToolUseGlob } from "./hooks/pre-tool-use-glob.js";
 import { handlePostToolUse } from "./hooks/post-tool-use.js";
 import { cleanupStaleSessions } from "./core/session-store.js";
 
@@ -51,6 +53,12 @@ async function main(): Promise<void> {
           break;
         case "Bash":
           handlePreToolUseBash(input, config);
+          break;
+        case "Grep":
+          handlePreToolUseGrep(input, config);
+          break;
+        case "Glob":
+          handlePreToolUseGlob(input, config);
           break;
         default:
           process.exit(0);
